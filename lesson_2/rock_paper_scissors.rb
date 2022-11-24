@@ -107,7 +107,8 @@ class Human < Player
       puts "Invalid choice."
     end
 
-    self.move = Move.new(choice)
+    class_name = Kernel.const_get(choice.capitalize)
+    self.move = class_name.new
   end
 end
 
@@ -117,56 +118,61 @@ class Computer < Player
   end
 
   def choose
-    self.move = Move.new(Move::VALUES.sample)
+    class_name = Kernel.const_get(Move::VALUES.sample.capitalize)
+    self.move = class_name.new
   end
 end
 
 class Move
+  attr_reader :loses_to, :wins_against
+
   VALUES = ['rock', 'paper', 'scissors', 'spock', 'lizard']
-  def initialize(value)
-    @value = value
-  end
-
-  def scissors?
-    @value == 'scissors'
-  end
-
-  def rock?
-    @value == 'rock'
-  end
-
-  def paper?
-    @value == 'paper'
-  end
-
-  def spock?
-    @value == 'spock'
-  end
-
-  def lizard?
-    @value == 'lizard'
-  end
 
   def >(other_move)
-    if rock?
-      other_move.scissors? || other_move.lizard?
-    elsif paper?
-      other_move.rock? || other_move.spock?
-    elsif scissors?
-      other_move.paper? || other_move.lizard?
-    elsif spock?
-      other_move.rock? || other_move.scissors?
-    else # lizard
-      other_move.paper? || other_move.spock?
-    end
+    wins_against.include?(other_move.class)
   end
 
   def <(other_move)
-    other_move > self
+    loses_to.include?(other_move.class)
   end
 
   def to_s
-    @value
+    self.class.to_s
+  end
+end
+
+class Rock < Move
+  def initialize
+    @loses_to = [Paper, Spock]
+    @wins_against = [Scissors, Lizard]
+  end
+end
+
+class Paper < Move
+  def initialize
+    @loses_to = [Lizard, Scissors]
+    @wins_against = [Rock, Spock]
+  end
+end
+
+class Scissors < Move
+  def initialize
+    @loses_to = [Rock, Spock]
+    @wins_against = [Paper, Lizard]
+  end
+end
+
+class Spock < Move
+  def initialize
+    @loses_to = [Lizard, Paper]
+    @wins_against = [Rock, Scissors]
+  end
+end
+
+class Lizard < Move
+  def initialize
+    @loses_to = [Rock, Scissors]
+    @wins_against = [Paper, Spock]
   end
 end
 
@@ -187,10 +193,11 @@ RPS Bonus Features
 - Add a class for each move
   - can inherit from Move class
   - can each have a defeats list that will be utilized in the
+  - thoughts:
+    - The attr_reader for @loses_to and @wins_against seems weird to put in the Move class, but it would be a lot of repitition to put it in each class, especially when it works to put it in Move
 
 - Keep track of a history of moves
+- need to reimplement play_again? before this has purpose
 
 - Computer Personalities
-
-
 =end
