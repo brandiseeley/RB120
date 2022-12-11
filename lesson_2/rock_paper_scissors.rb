@@ -10,12 +10,16 @@ class RPSGame
 
   def play
     display_welcome_message
-
-    until human.score == winning_score || computer.score == winning_score
-      play_round
-      display_scores
+    loop do
+      until human.score == winning_score || computer.score == winning_score
+        play_round
+        display_scores
+      end
+      break unless play_again?
+      human.score, computer.score = 0, 0
     end
     display_goodbye_message
+    # display_move_history
   end
 
   def play_round
@@ -63,6 +67,11 @@ class RPSGame
     end
   end
 
+  def display_move_history
+    puts "#{human.name} has played these moves: #{human.move_history}"
+    puts "#{computer.name} has played these moves: #{computer.move_history}"
+  end
+
   def increment_score
     if human.move > computer.move
       human.score += 1
@@ -78,11 +87,12 @@ def display_scores
 end
 
 class Player
-  attr_accessor :move, :name, :score
+  attr_accessor :move, :name, :score, :move_history
 
   def initialize
     set_name
     @score = 0
+    @move_history = []
   end
 end
 
@@ -109,6 +119,7 @@ class Human < Player
 
     class_name = Kernel.const_get(choice.capitalize)
     self.move = class_name.new
+    self.move_history << self.move
   end
 end
 
@@ -120,6 +131,7 @@ class Computer < Player
   def choose
     class_name = Kernel.const_get(Move::VALUES.sample.capitalize)
     self.move = class_name.new
+    self.move_history << self.move
   end
 end
 
@@ -197,7 +209,9 @@ RPS Bonus Features
     - The attr_reader for @loses_to and @wins_against seems weird to put in the Move class, but it would be a lot of repitition to put it in each class, especially when it works to put it in Move
 
 - Keep track of a history of moves
-- need to reimplement play_again? before this has purpose
+  - need to reimplement play_again? before this has purpose
+  - successfully kept track of move history, but when using interpolation on an array, it seems that to_s is called on the array object, not each object within the array. Hoping to find a way to fix this without iterating over each element of move_history
 
 - Computer Personalities
+  - I would consider creating a hash that contains the computer character name as a key and the attributes as values. Maybe an array of catch phrases to randomly throw out during play. A favorite moves array or least favorite moves array that are chosen less often. The attribute types should be the same for each hash value so we can populate different instance variables upon instantiation of a computer opponent.
 =end
